@@ -2,8 +2,14 @@
 #include <stdlib.h>
 
 GtkWidget *window;
+
+GtkWidget *used_time;
+int used_time_h,used_time_m,used_time_s;
+used_time_h=0;
+used_time_m=0;
+used_time_s=0;
+
 gboolean timer_handler();
-GtkWidget *ens[81];
 GtkWidget *entrys[81];
 int map[81]={4,1,2,5,6,0,8,7,9,
          0,8,6,4,7,2,5,0,0,
@@ -14,9 +20,6 @@ int map[81]={4,1,2,5,6,0,8,7,9,
          5,3,0,9,0,0,7,6,0,
          0,0,8,1,2,7,4,5,0,
          2,4,7,0,5,6,9,1,8};
-
-
-
 
 void destroy(GtkWidget *widget,gpointer data)
 {
@@ -98,14 +101,26 @@ void check(GtkWidget *widget,gpointer data)
     }
     if(ok)
     {
-        printf("your win!");
+        printf("you win!");
         GtkWidget *dialog;
         dialog = gtk_message_dialog_new(NULL,
                 GTK_DIALOG_DESTROY_WITH_PARENT,
                 GTK_MESSAGE_INFO,
                 GTK_BUTTONS_OK,
-                "\n你赢了\n");
+                "\nyou win!\n");
         gtk_window_set_title(GTK_WINDOW(dialog), "success");
+        gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+    }else
+    {
+        printf("you lose!");
+        GtkWidget *dialog;
+        dialog = gtk_message_dialog_new(NULL,
+                GTK_DIALOG_DESTROY_WITH_PARENT,
+                GTK_MESSAGE_INFO,
+                GTK_BUTTONS_OK,
+                "\nyou lose!\n");
+        gtk_window_set_title(GTK_WINDOW(dialog), "fail");
         gtk_dialog_run(GTK_DIALOG(dialog));
         gtk_widget_destroy(dialog);
     }
@@ -113,31 +128,68 @@ void check(GtkWidget *widget,gpointer data)
 
 void change(GtkEntry *entry,gchar *preedit,gpointer data)
 {
-    printf("event\n");
-    char *num = gtk_entry_get_text (GTK_ENTRY(entry));
-//    gtk_widget_hide(GTK_LABEL(data));
-
-//    printf("%s:%d\n",num,(int)data);
-//    *a = 2;
-//    
-//    int * pn = user_data;
-    printf("%s\n",num);
+//    printf("event\n");
+//    char *num = gtk_entry_get_text (GTK_ENTRY(entry));
+//    printf("%s\n",num);
 }
 
 
 gboolean showtime()
 {
-//    GDateTime *date_time;
-//    gchar *dt_format;
-//    date_time = g_date_time_new_now_local();
-//    dt_format = g_date_time_format(date_time, "%H:%M:%S");   
-//    gtk_label_set_text(GTK_LABEL(label),dt_format);
-//    g_free (dt_format);
+    used_time_s++;
+    if (used_time_s>59)
+    {
+        used_time_m++;
+        used_time_s=0;
+    }
+    if (used_time_m>59)
+    {
+        used_time_h++;
+        used_time_m=0;
+    }
+
+    char *s_h[2];
+    char *s_m[2];
+    char *s_s[2];
+    
+    if(used_time_s<10)
+    {
+        sprintf(s_s, "0%d",used_time_s);
+    }else
+    {
+        sprintf(s_s, "%d",used_time_s);
+    }
+    
+    
+
+    if(used_time_m<10)
+    {
+        sprintf(s_m, "0%d",used_time_m);
+    }else
+    {
+        sprintf(s_m, "%d",used_time_m);
+    }
+//    printf("%d:%d:%d\n",used_time_h,used_time_m,used_time_s);
+
+//
+    if(used_time_h<10)
+    {
+        sprintf(s_h, "0%d",used_time_h);
+    }else
+    {
+        sprintf(s_h, "%d",used_time_h);
+    }
+    char *use_time[8];
+    sprintf(use_time, "%s:%s:%s", s_h,s_m,s_s);
+    gtk_label_set_text(GTK_LABEL(used_time),use_time);
     return TRUE;
 }
 int main(int argc,char *argv[])
 {
-    
+    PangoAttrList *attrls;
+    PangoAttribute *attr;
+    PangoFontDescription *df;
+
     gtk_init (&argc, &argv);
     window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size(GTK_WINDOW(window),770,595);
@@ -170,11 +222,30 @@ int main(int argc,char *argv[])
     g_signal_connect(btn, "clicked",G_CALLBACK(check), NULL);
     
     gtk_fixed_put (GTK_FIXED(fixed),btn,600,300);
+
+
+    
+    used_time = gtk_label_new_with_mnemonic ("");
+    gtk_widget_set_size_request(used_time,150,50);
+    
+    attrls = pango_attr_list_new ();
+    df = pango_font_description_new();
+    pango_font_description_set_family(df, "Ani");
+    pango_font_description_set_size(df, 20 * PANGO_SCALE);
+    pango_font_description_set_weight(df, PANGO_WEIGHT_BOLD);
+
+    attr = pango_attr_font_desc_new(df);
+    pango_attr_list_insert(attrls, attr);
+    pango_font_description_free(df);
+
+    attr = pango_attr_foreground_new(65535,0,0);
+    pango_attr_list_change(attrls, attr);
+    gtk_label_set_attributes(GTK_LABEL(used_time), attrls);
+
+    gtk_fixed_put (GTK_FIXED(fixed),used_time,600,200);
 //    gtk_container_add (GTK_CONTAINER (fixed), gird);
 
-    PangoAttrList *attrls;
-    PangoAttribute *attr;
-    PangoFontDescription *df;
+    
 
     int map_index=0;
 
@@ -241,17 +312,10 @@ int main(int argc,char *argv[])
             map_index++;
             pango_attr_list_unref(attrls);
         }  
-    }
-
-
-//
-//    gtk_container_add (GTK_CONTAINER (window), label);
-//    
+    } 
     gtk_widget_show_all (window);
-//    g_timeout_add_seconds (1, (GSourceFunc) showtime,NULL);
-
+    g_timeout_add_seconds (1, (GSourceFunc) showtime,NULL);
     gtk_main ();
     return 0;
 }
-
 
