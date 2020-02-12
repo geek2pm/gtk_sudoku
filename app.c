@@ -62,9 +62,6 @@ void destroy(GtkWidget *widget,gpointer data)
 void check(GtkWidget *widget,gpointer data)
 {   
     int numbers[81];
-    char *s = gtk_entry_get_text (entrys[5]);
-    printf("check\n");
-    printf("%s\n",s);
     int map_index=0;
     for(int i = 0; i < 9; i++)
     {
